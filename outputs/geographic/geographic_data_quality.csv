@@ -1,0 +1,9 @@
+measure,count,denominator
+Total pickup records,4534327,all records
+Inside NYC boundary,4411894,all records
+Outside NYC boundary,122433,all records
+Inside NYC without borough match,0,inside NYC
+Outside NYC unmatched to state,49,outside NYC
+Inside NYC unmatched to 2014 state polygon,15,inside NYC
+NYC boundary points,0,all records
+Suspicious geography total,65,all records

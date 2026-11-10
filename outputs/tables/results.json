@@ -1,0 +1,220 @@
+{
+  "n": 4534327,
+  "nyc_n": 4411894,
+  "outside_n": 122433,
+  "unmatched_inside": 0,
+  "outside_unmatched": 49,
+  "boundary_points": 0,
+  "inside_state_unmatched": 15,
+  "monthly_counts": {
+    "4": 564516,
+    "5": 652435,
+    "6": 663844,
+    "7": 796121,
+    "8": 829275,
+    "9": 1028136
+  },
+  "hour_counts": {
+    "0": 103836,
+    "1": 67227,
+    "2": 45865,
+    "3": 48287,
+    "4": 55230,
+    "5": 83939,
+    "6": 143213,
+    "7": 193094,
+    "8": 190504,
+    "9": 159967,
+    "10": 159148,
+    "11": 165703,
+    "12": 170452,
+    "13": 195877,
+    "14": 230625,
+    "15": 275466,
+    "16": 313400,
+    "17": 336190,
+    "18": 324679,
+    "19": 294513,
+    "20": 284604,
+    "21": 281460,
+    "22": 241858,
+    "23": 169190
+  },
+  "weekday_counts": {
+    "0": 541472,
+    "1": 663789,
+    "2": 696488,
+    "3": 755145,
+    "4": 741139,
+    "5": 646114,
+    "6": 490180
+  },
+  "boroughs": [
+    {
+      "borough": "Manhattan",
+      "pickups": 3443457,
+      "pct_nyc": 78.04940463211491,
+      "pct_all": 75.94196448557857
+    },
+    {
+      "borough": "Brooklyn",
+      "pickups": 593595,
+      "pct_nyc": 13.454425695630947,
+      "pct_all": 13.091137891025504
+    },
+    {
+      "borough": "Queens",
+      "pickups": 342224,
+      "pct_nyc": 7.756850005915826,
+      "pct_all": 7.547404499057963
+    },
+    {
+      "borough": "Bronx",
+      "pickups": 31584,
+      "pct_nyc": 0.7158830198549648,
+      "pct_all": 0.696553204036674
+    },
+    {
+      "borough": "Staten Island",
+      "pickups": 1034,
+      "pct_nyc": 0.023436646483347062,
+      "pct_all": 0.02280382513215302
+    }
+  ],
+  "states": {
+    "New York": 4441067,
+    "New Jersey": 92649,
+    "Connecticut": 546,
+    "Massachusetts": 1,
+    "Other classified states": 0,
+    "Unmatched": 64
+  },
+  "bases": {
+    "B02512": 205673,
+    "B02598": 1393113,
+    "B02617": 1458853,
+    "B02682": 1212789,
+    "B02764": 263899,
+    "B02765": 0,
+    "B02835": 0,
+    "B02836": 0
+  },
+  "tests": [
+    {
+      "question": "Is hour associated with day of week?",
+      "test": "Pearson chi-square independence",
+      "statistic": 305696.5832051684,
+      "df": 138,
+      "p_value": 0.0,
+      "cramers_v": 0.10600180213079563,
+      "n": 4534327
+    },
+    {
+      "question": "Does month-hour distribution vary across months?",
+      "test": "Pearson chi-square independence",
+      "statistic": 12423.436686550736,
+      "df": 115,
+      "p_value": 0.0,
+      "cramers_v": 0.023408816377970886,
+      "n": 4534327
+    },
+    {
+      "question": "Does hourly pickup profile differ by borough?",
+      "test": "Pearson chi-square independence",
+      "statistic": 47371.17336283986,
+      "df": 92,
+      "p_value": 0.0,
+      "cramers_v": 0.05181011313471973,
+      "n": 4411894
+    },
+    {
+      "question": "Are Uber base and borough pickup distributions associated?",
+      "test": "Pearson chi-square independence",
+      "statistic": 16095.661325824174,
+      "df": 16,
+      "p_value": 0.0,
+      "cramers_v": 0.030200343469400863,
+      "n": 4411894
+    },
+    {
+      "question": "Does mean demand per calendar date differ by weekday?",
+      "test": "Chi-square goodness of fit adjusted for weekday-date exposure",
+      "statistic": 91187.26117535448,
+      "df": 6,
+      "p_value": 0.0,
+      "effect_size_cohens_w": 0.14181124424877045,
+      "n": 4534327,
+      "date_exposures": [
+        26,
+        27,
+        26,
+        26,
+        26,
+        26,
+        26
+      ]
+    }
+  ],
+  "quality": [
+    {
+      "month": "Apr",
+      "rows": 564516,
+      "expected_rows": 564516,
+      "duplicate_rows": 7749,
+      "missing_cells": 0,
+      "invalid_rows": 0,
+      "wrong_month_rows": 0,
+      "rows_match_expected": true
+    },
+    {
+      "month": "May",
+      "rows": 652435,
+      "expected_rows": 652435,
+      "duplicate_rows": 10075,
+      "missing_cells": 0,
+      "invalid_rows": 0,
+      "wrong_month_rows": 0,
+      "rows_match_expected": true
+    },
+    {
+      "month": "Jun",
+      "rows": 663844,
+      "expected_rows": 663844,
+      "duplicate_rows": 10686,
+      "missing_cells": 0,
+      "invalid_rows": 0,
+      "wrong_month_rows": 0,
+      "rows_match_expected": true
+    },
+    {
+      "month": "Jul",
+      "rows": 796121,
+      "expected_rows": 796121,
+      "duplicate_rows": 14152,
+      "missing_cells": 0,
+      "invalid_rows": 0,
+      "wrong_month_rows": 0,
+      "rows_match_expected": true
+    },
+    {
+      "month": "Aug",
+      "rows": 829275,
+      "expected_rows": 829275,
+      "duplicate_rows": 15882,
+      "missing_cells": 0,
+      "invalid_rows": 0,
+      "wrong_month_rows": 0,
+      "rows_match_expected": true
+    },
+    {
+      "month": "Sep",
+      "rows": 1028136,
+      "expected_rows": 1028136,
+      "duplicate_rows": 24037,
+      "missing_cells": 0,
+      "invalid_rows": 0,
+      "wrong_month_rows": 0,
+      "rows_match_expected": true
+    }
+  ]
+}

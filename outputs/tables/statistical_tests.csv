@@ -1,0 +1,6 @@
+question,test,statistic,df,p_value,cramers_v,n,effect_size_cohens_w,date_exposures
+Is hour associated with day of week?,Pearson chi-square independence,305696.5832051684,138,0.0,0.10600180213079563,4534327,,
+Does month-hour distribution vary across months?,Pearson chi-square independence,12423.436686550736,115,0.0,0.023408816377970886,4534327,,
+Does hourly pickup profile differ by borough?,Pearson chi-square independence,47371.17336283986,92,0.0,0.05181011313471973,4411894,,
+Are Uber base and borough pickup distributions associated?,Pearson chi-square independence,16095.661325824174,16,0.0,0.030200343469400863,4411894,,
+Does mean demand per calendar date differ by weekday?,Chi-square goodness of fit adjusted for weekday-date exposure,91187.26117535448,6,0.0,,4534327,0.14181124424877045,"[26, 27, 26, 26, 26, 26, 26]"

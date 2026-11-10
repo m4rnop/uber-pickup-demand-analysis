@@ -1,0 +1,7 @@
+month,rows,expected_rows,duplicate_rows,missing_cells,invalid_rows,wrong_month_rows,rows_match_expected
+Apr,564516,564516,7749,0,0,0,True
+May,652435,652435,10075,0,0,0,True
+Jun,663844,663844,10686,0,0,0,True
+Jul,796121,796121,14152,0,0,0,True
+Aug,829275,829275,15882,0,0,0,True
+Sep,1028136,1028136,24037,0,0,0,True

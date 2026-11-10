@@ -1,5 +1,12 @@
 pandas
 numpy
+geopandas
+shapely
+pyarrow
 matplotlib
 seaborn
 jupyter
+nbformat
+nbclient
+python-docx
+reportlab
