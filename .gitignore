@@ -222,6 +222,7 @@ __marimo__/
 
 # Dataset files
 data/*.csv
+data/*.csv.part
 data/*.zip
 
 # Python environment

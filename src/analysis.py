@@ -46,6 +46,20 @@ BASE_CODES = [
     "B02836",
 ]
 
+PICKUP_COLUMNS = ["Date/Time", "Lat", "Lon", "Base"]
+PICKUP_TIMESTAMP_FORMAT = "%m/%d/%Y %H:%M:%S"
+
+
+def pickup_sources():
+    sources = {month: DATA_DIR / f"uber-raw-data-{month}14.csv" for month in MONTHS}
+    missing = [path.name for path in sources.values() if not path.is_file()]
+    if missing:
+        raise FileNotFoundError(
+            f"Missing monthly pickup files: {', '.join(missing)}. "
+            "See data/README.md for download instructions."
+        )
+    return sources
+
 
 def setup_output_directories():
     """Create output folders and configure a consistent chart style."""
@@ -187,37 +201,48 @@ def audit_nyc_states(longitudes, latitudes, inside_nyc, states):
 
 def load_and_classify():
     """Read monthly files, validate them, and add temporal/geographic labels."""
+    sources = pickup_sources()
     nyc_boundary, borough_geometries, state_geometries = load_boundaries()
     frames = []
     quality = []
-    for month_key in MONTHS:
-        source_path = DATA_DIR / f"uber-raw-data-{month_key}14.csv"
-        month_data = pd.read_csv(source_path, parse_dates=["Date/Time"])
-        month_data.columns = month_data.columns.str.strip()
+    for month_key, source_path in sources.items():
+        month_data = pd.read_csv(source_path, usecols=PICKUP_COLUMNS)
         month_data["month_file"] = month_key.title()
         # Exact duplicates are flagged, never discarded. April duplicates retained.
         duplicate_count = month_data.duplicated(
             subset=["Date/Time", "Lat", "Lon", "Base"]
         ).sum()
+        missing_cells = int(month_data[PICKUP_COLUMNS].isna().sum().sum())
+        timestamp = pd.to_datetime(
+            month_data["Date/Time"], format=PICKUP_TIMESTAMP_FORMAT, errors="coerce"
+        )
+        for column in ("Lat", "Lon"):
+            month_data[column] = pd.to_numeric(month_data[column], errors="coerce")
         invalid = (
-            ~month_data["Date/Time"].notna()
+            timestamp.isna()
             | ~month_data["Lat"].between(-90, 90)
             | ~month_data["Lon"].between(-180, 180)
             | ~month_data["Base"].isin(BASE_CODES)
         )
+        wrong_month = timestamp.notna() & (
+            timestamp.dt.year.ne(2014) | timestamp.dt.month.ne(MONTH_NUMBERS[month_key])
+        )
+        if invalid.any() or wrong_month.any():
+            raise ValueError(
+                f"{source_path.name}: {invalid.sum():,} invalid rows and "
+                f"{wrong_month.sum():,} rows outside the expected month. "
+                "Check the input against the original source in data/README.md."
+            )
+        month_data["Date/Time"] = timestamp
         quality.append(
             {
                 "month": month_key.title(),
                 "rows": len(month_data),
                 "expected_rows": EXPECTED_ROWS[month_key],
                 "duplicate_rows": int(duplicate_count),
-                "missing_cells": int(
-                    month_data[["Date/Time", "Lat", "Lon", "Base"]].isna().sum().sum()
-                ),
+                "missing_cells": missing_cells,
                 "invalid_rows": int(invalid.sum()),
-                "wrong_month_rows": int(
-                    (month_data["Date/Time"].dt.month != MONTH_NUMBERS[month_key]).sum()
-                ),
+                "wrong_month_rows": int(wrong_month.sum()),
                 "rows_match_expected": len(month_data) == EXPECTED_ROWS[month_key],
             }
         )
@@ -234,7 +259,6 @@ def load_and_classify():
         month_data["borough"] = borough
         month_data["state_outside_nyc"] = outside_state
         month_data["state_geometry_audit_inside_nyc"] = state_audit
-        timestamp = month_data["Date/Time"]
         month_data["year"] = timestamp.dt.year
         month_data["month"] = timestamp.dt.month
         month_data["day"] = timestamp.dt.day

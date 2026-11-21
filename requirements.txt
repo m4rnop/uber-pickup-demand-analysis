@@ -1,7 +1,7 @@
 pandas
 numpy
-geopandas
-shapely
+geopandas>=1.0
+shapely>=2.0
 pyarrow
 matplotlib
 seaborn
@@ -10,3 +10,5 @@ nbformat
 nbclient
 python-docx
 reportlab
+pillow>=9.1
+pyproj

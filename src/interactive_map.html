@@ -68,6 +68,7 @@ details{margin:.45rem 0}summary{padding:.5rem .65rem;border-radius:9px;font-size
 <div class="chart-grid" id="charts"></div>
 </section>
 <script id="pickup-data" type="application/octet-stream">__PICKUPS__</script>
+<script id="map-metadata" type="application/json">null</script>
 <script id="worker-code" type="text/plain">
 let rows, groups, cachedKey, ranges, total, filteredStats, dimensions;
 const cosine = Math.cos(41 * Math.PI / 180);
@@ -172,7 +173,13 @@ self.onmessage = async ({data: m}) => {
 </script>
 <script>
 'use strict';
-const meta=__METADATA__;
+const meta=JSON.parse(document.getElementById('map-metadata').textContent);
+if (!meta) {
+  const message='ไฟล์นี้เป็นต้นฉบับ กรุณาเปิด outputs/interactive_map/index.html';
+  document.getElementById('stats').textContent=message;
+  document.getElementById('chartStatus').textContent=message;
+  throw new Error(message);
+}
 const $=id=>document.getElementById(id);
 const canvas=$('map'), ctx=canvas.getContext('2d');
 const heat=document.createElement('canvas'), hctx=heat.getContext('2d',{willReadFrequently:true});
@@ -207,7 +214,7 @@ $('dataset').textContent=f.format(meta.count);
 const months=['เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.'];
 const days=['จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์','อาทิตย์'];
 const filterSets=[['month','เดือน',months],['day','วันในสัปดาห์',days],
-                  ['area','พื้นที่',meta.areas],['base','Dispatch base',meta.bases]];
+                  ['area','พื้นที่',meta.areas],['base','รหัส Base',meta.bases]];
 const inputs={}, filterChoice={}, summaries={};
 const areaLabels=[...meta.areas.slice(0,5),'นอก NYC','NYC ไม่ระบุ borough'];
 for (const [key,title,labels] of filterSets) {
@@ -275,7 +282,7 @@ function areaSelected(index){
 const chartSpecs=[
   ['hour','ตามชั่วโมง',hourLabels,false],['day','ตามวันในสัปดาห์',days,false],
   ['month','ตามเดือน',months,false],['area','ตามพื้นที่',areaLabels,true],
-  ['base','ตาม Dispatch base',meta.bases,true]
+  ['base','ตาม รหัส Base',meta.bases,true]
 ];
 const chartElements=chartSpecs.map(([key,title,,horizontal])=>{
   const section=document.createElement('section'), heading=document.createElement('h3');

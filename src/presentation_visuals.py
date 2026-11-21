@@ -17,10 +17,12 @@ from matplotlib.text import Text
 from matplotlib.ticker import FuncFormatter
 from pyproj import Transformer
 
-from analysis import BOROUGH_ORDER, DATA_DIR, MONTH_NUMBERS, MONTHS, OUTPUT_DIR, classify_coordinates
+from analysis import (
+    BOROUGH_ORDER, DATA_DIR, MONTH_NUMBERS, MONTHS, OUTPUT_DIR,
+    PICKUP_COLUMNS, PICKUP_TIMESTAMP_FORMAT, classify_coordinates, pickup_sources,
+)
 
 DEST = OUTPUT_DIR / "presentation_visuals"
-COLUMNS = ["Date/Time", "Lat", "Lon", "Base"]
 MONTHS_TITLE = [month.title() for month in MONTHS]
 DPI = 300
 SEED = 369
@@ -37,10 +39,9 @@ plt.rcParams.update({"font.family": "DejaVu Sans", "text.color": INK,
 
 def load_pickups():
     frames, audit = [], []
-    for key in MONTHS:
-        path = DATA_DIR / f"uber-raw-data-{key}14.csv"
-        frame = pd.read_csv(path, usecols=COLUMNS)
-        timestamp = pd.to_datetime(frame["Date/Time"], format="%m/%d/%Y %H:%M:%S",
+    for key, path in pickup_sources().items():
+        frame = pd.read_csv(path, usecols=PICKUP_COLUMNS)
+        timestamp = pd.to_datetime(frame["Date/Time"], format=PICKUP_TIMESTAMP_FORMAT,
                                    errors="coerce")
         for column in ["Lat", "Lon"]:
             frame[column] = pd.to_numeric(frame[column], errors="coerce")
@@ -156,7 +157,7 @@ def base_charts(pickups):
     palette = ["#147E9D", "#E07832", "#8B72C5", "#43A17C", "#CE5B86", "#AB8937"]
     colors = dict(zip(totals.index, cycle(palette)))
     period = "April–September 2014"
-    fig, ax = chart("Uber pickups by dispatch base",
+    fig, ax = chart("Uber pickups by affiliated base",
                     f"{period}  •  {len(totals)} base codes with recorded pickups")
     positions = np.arange(len(totals))
     bars = ax.barh(positions, totals, color=[colors[base] for base in totals.index])
@@ -434,10 +435,10 @@ def write_summary(audit, boundaries, stats):
     audit.to_csv(DEST / "input_quality.csv", index=False)
     previews = [
         ("base_overview", [
-            ("charts", "base_pickups_bar", "Total pickups by dispatch base"),
-            ("charts", "base_pickups_monthly", "Dispatch bases by month"),
-            ("charts", "base_pickups_weekday", "Dispatch bases by weekday"),
-            ("charts", "base_pickups_hourly", "Dispatch bases by hour"),
+            ("charts", "base_pickups_bar", "Total pickups by affiliated base"),
+            ("charts", "base_pickups_monthly", "Affiliated bases by month"),
+            ("charts", "base_pickups_weekday", "Affiliated bases by weekday"),
+            ("charts", "base_pickups_hourly", "Affiliated bases by hour"),
         ]),
         ("charts_overview", [
             ("charts", "monthly_pickups_bar", "Monthly pickup volume"),
@@ -470,7 +471,7 @@ def write_summary(audit, boundaries, stats):
     duplicates = audit.duplicate_rows_retained.sum()
     (DEST / "README.md").write_text(f"""# Uber Pickup Demand Analysis | Presentation visuals
 
-Run from the project root with `.venv/bin/python src/presentation_visuals.py`.
+Run from the project root with `python src/presentation_visuals.py`.
 
 ## Inputs
 

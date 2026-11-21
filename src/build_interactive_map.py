@@ -61,7 +61,12 @@ def main():
     packed = np.column_stack((group[order], x[order], y[order])).astype("<u2")
     payload = base64.b64encode(gzip.compress(packed.tobytes(), compresslevel=6, mtime=0))
     metadata = {"bases": bases, "areas": AREAS, "count": len(data), "layers": boundaries()}
-    html = SOURCE.read_text().replace("__METADATA__", json.dumps(metadata, separators=(",", ":")))
+    metadata_json = json.dumps(metadata, separators=(",", ":")).replace("<", "\\u003c")
+    html = SOURCE.read_text(encoding="utf-8").replace(
+        'id="map-metadata" type="application/json">null</script>',
+        f'id="map-metadata" type="application/json">{metadata_json}</script>',
+        1,
+    )
     DEST.parent.mkdir(parents=True, exist_ok=True)
     DEST.write_text(html.replace("__PICKUPS__", payload.decode("ascii")), encoding="utf-8")
     print(f"{len(data):,} pickups · {DEST.stat().st_size / 1e6:.1f} MB · {DEST}")

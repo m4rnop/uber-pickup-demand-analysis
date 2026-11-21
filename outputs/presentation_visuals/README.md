@@ -1,6 +1,6 @@
 # Uber Pickup Demand Analysis | Presentation visuals
 
-Run from the project root with `.venv/bin/python src/presentation_visuals.py`.
+Run from the project root with `python src/presentation_visuals.py`.
 
 ## Inputs
 
