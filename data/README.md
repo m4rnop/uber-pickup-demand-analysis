@@ -2,7 +2,7 @@
 
 ## Uber pickup records
 
-Download these six CSV files from [FiveThirtyEight’s TLC FOIL release](https://github.com/fivethirtyeight/uber-tlc-foil-response/tree/master/uber-trip-data) and place them directly in `data/`. The raw CSVs are excluded from Git. The analysis expects the original headers `Date/Time`, `Lat`, `Lon`, and `Base`.
+This directory includes the six original CSV files from [FiveThirtyEight’s TLC FOIL release](https://github.com/fivethirtyeight/uber-tlc-foil-response/tree/master/uber-trip-data). The analysis expects the original headers `Date/Time`, `Lat`, `Lon`, and `Base`.
 
 | File | Data rows |
 |---|---:|
@@ -13,7 +13,7 @@ Download these six CSV files from [FiveThirtyEight’s TLC FOIL release](https:/
 | `uber-raw-data-aug14.csv` | 829,275 |
 | `uber-raw-data-sep14.csv` | 1,028,136 |
 
-On macOS or Linux, run this from the repository root to download only missing files:
+To restore a missing CSV on macOS or Linux, run this from the repository root:
 
 ```sh
 for month in apr may jun jul aug sep; do

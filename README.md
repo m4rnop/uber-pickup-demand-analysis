@@ -22,7 +22,7 @@ python -m pip install -r requirements.txt
 
 On Windows PowerShell, activate it with `.venv\Scripts\Activate.ps1`.
 
-1. Download the six monthly pickup CSVs into `data/` following the [data instructions](data/README.md). The repository includes the geographic boundaries and prebuilt results.
+1. The six monthly pickup CSVs and geographic boundaries are included in [`data/`](data/README.md). The repository also includes prebuilt results.
 2. Run the analysis and regenerate the map, charts, and reports:
 
    ```sh

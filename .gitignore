@@ -222,6 +222,12 @@ __marimo__/
 
 # Dataset files
 data/*.csv
+!data/uber-raw-data-apr14.csv
+!data/uber-raw-data-may14.csv
+!data/uber-raw-data-jun14.csv
+!data/uber-raw-data-jul14.csv
+!data/uber-raw-data-aug14.csv
+!data/uber-raw-data-sep14.csv
 data/*.csv.part
 data/*.zip
 
