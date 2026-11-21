@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Uber Pickup Explorer · NYC 2014</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;color:#edf4f6;background:#0b121a;--line:#283744;--muted:#a4b6c3;--accent:#74e1ba}
+*{box-sizing:border-box}body{margin:0}button,select,input{font:inherit}button,select,summary{color:inherit;cursor:pointer}button,select,details{background:#192632;border:1px solid var(--line);border-radius:9px}button{padding:.58rem .68rem}button:hover,summary:hover{background:#253847}button:focus-visible,summary:focus-visible,select:focus-visible,canvas:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+header{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1rem 1.5rem;border-bottom:1px solid var(--line);background:#111c26}h1{margin:0;font-size:clamp(1.1rem,3vw,1.7rem)}header p{margin:.2rem 0 0;color:var(--muted);font-size:.9rem}header strong{color:var(--accent);font-variant-numeric:tabular-nums}header div:last-child{text-align:right}
+main{display:grid;grid-template-columns:295px minmax(0,1fr);height:calc(100dvh - 83px);min-height:570px}aside{padding:1rem;overflow:auto;background:#101a24;border-right:1px solid var(--line)}h2{font-size:1rem;margin:0 0 .75rem}.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:.3rem;margin-bottom:1rem}.modes button{padding:.55rem .2rem;font-size:.88rem}.modes [aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#112822;font-weight:700}
+details{margin:.45rem 0}summary{padding:.5rem .65rem;border-radius:9px;font-size:.9rem}.options{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;padding:.3rem .65rem .65rem}.options label{font-size:.9rem;display:flex;align-items:center;gap:.35rem}input[type=checkbox],input[type=range]{accent-color:var(--accent)}fieldset{border:0;padding:0;margin:.85rem 0}legend{font-weight:600;font-size:.9rem;margin-bottom:.35rem}output{color:var(--accent);font-size:.9rem}input[type=range]{width:100%;display:block;margin:.3rem 0}small{color:var(--muted);display:block;line-height:1.5}.actions{display:flex;gap:.45rem;margin-top:.8rem;font-size:.85rem}
+.map{position:relative;min-height:0;overflow:hidden;background:#0c1721}canvas{width:100%;height:100%;display:block;touch-action:none;cursor:grab}canvas:active{cursor:grabbing}.overlay{position:absolute;z-index:1;background:#111d29ee;border:1px solid var(--line);border-radius:10px;padding:.65rem .8rem;box-shadow:0 8px 24px #0004}.stats{top:1rem;left:1rem;font-size:.88rem;pointer-events:none}.stats strong{color:var(--accent)}.zoom{right:1rem;top:1rem;display:grid;padding:.25rem;gap:.25rem}.zoom button{min-width:38px;padding:.3rem}.key{bottom:1rem;left:1rem;font-size:.83rem;max-width:min(320px,75%);pointer-events:none}.ramp{height:6px;margin:.5rem 0;border-radius:6px;background:linear-gradient(90deg,#499caf,#64dbb2,#f9cd6c,#f79248,#fff1a9)}.tip{position:absolute;background:#101c26;color:#fff;border:1px solid #496478;padding:.4rem .55rem;border-radius:6px;pointer-events:none;font-size:.85rem}.tip[hidden]{display:none}
+@media(max-width:720px){main{display:flex;flex-direction:column-reverse;height:auto;min-height:0}.map{height:62dvh;min-height:330px}aside{overflow:visible;border-right:0;border-top:1px solid var(--line)}header{padding:.75rem 1rem}header p{font-size:.82rem}.options{grid-template-columns:repeat(3,1fr)}}
+</style>
+<style>
+.options button{padding:.4rem;font-size:.84rem}
+.options button[aria-pressed=true],.presets button[aria-pressed=true]{background:#214439;border-color:#63bf9d;color:#b8f8df}
+.options .all{grid-column:1/-1}
+.presets,.clock-fields{display:flex;flex-wrap:wrap;gap:.35rem;margin:.45rem 0}
+.presets button{font-size:.82rem;padding:.36rem .46rem}
+.clock-fields label{display:grid;gap:.2rem;flex:1;font-size:.8rem;color:var(--muted)}
+.clock-fields select,#chartScope{padding:.42rem .48rem}
+.chart-jump{align-self:center;color:var(--accent);font-size:.85rem;white-space:nowrap}
+.report{padding:1.25rem clamp(1rem,3vw,2.5rem) 2.25rem;border-top:1px solid var(--line)}
+.report-head{display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap;margin-bottom:1rem}
+.report-head h2{margin:0;font-size:1.35rem}.report-head p{margin:.3rem 0;color:var(--muted)}
+.report-head label{display:flex;align-items:center;gap:.6rem;font-size:.9rem}
+.chart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}
+.chart{border:1px solid var(--line);border-radius:12px;background:#111c26;padding:1rem;min-width:0}
+.chart h3{margin:0 0 .4rem}.chart small{min-height:1.5em}
+.chart.hour{grid-column:1/-1}
+.bars{display:grid;grid-auto-columns:minmax(0,1fr);grid-auto-flow:column;gap:clamp(1px,1vw,10px);height:145px;margin:.65rem 0 0;padding:0;list-style:none}
+.bars li{display:grid;grid-template-rows:1fr 1.4rem;min-width:0;text-align:center;color:var(--muted);font-size:.74rem}
+.bar-slot{display:flex;align-items:end;justify-content:center;border-bottom:1px solid var(--line)}
+.bar-fill{display:block;background:var(--accent);border-radius:4px 4px 0 0;width:85%;max-width:52px}
+.bars li>span:last-child{align-self:end;white-space:nowrap}
+.rank{display:grid;gap:.5rem;margin:.65rem 0 0;padding:0;list-style:none}
+.rank li{display:grid;grid-template-columns:9rem 1fr auto;align-items:center;gap:.5rem;font-size:.85rem}
+.rank-track{height:.55rem;background:#263545;border-radius:4px}.rank-track i{display:block;height:100%;border-radius:4px;background:var(--accent)}
+@media(max-width:720px){.chart-grid{grid-template-columns:1fr}.rank li{grid-template-columns:7rem 1fr auto}}
+</style>
+</head>
+<body>
+<header><div><h1>Uber Pickup Explorer</h1><p>New York City และพื้นที่โดยรอบ · เม.ย.–ก.ย. 2014</p></div><div><strong id="dataset"></strong><p>รายการในชุดข้อมูล</p></div></header>
+<main>
+<aside aria-label="ตัวกรองแผนที่">
+<h2>มุมมองแผนที่</h2>
+<div class="modes"><button data-mode="heat" aria-pressed="true">Heatmap</button><button data-mode="hex" aria-pressed="false">Hexbin</button><button data-mode="point" aria-pressed="false">จุดรับ</button></div>
+<h2>ตัวกรอง</h2>
+<div id="filters"></div>
+<fieldset><legend>ช่วงชั่วโมง</legend><div id="presets" class="presets"></div><div class="clock-fields"><label>จาก<select id="start" aria-label="ชั่วโมงเริ่มต้น"></select></label><label>ถึง<select id="end" aria-label="ชั่วโมงสุดท้าย"></select></label></div><small>เวลาท้องถิ่น รวมชั่วโมงสิ้นสุด</small></fieldset>
+<fieldset><legend id="sizeLabel">รัศมี Heatmap</legend><output id="sizeValue"></output><input id="size" aria-labelledby="sizeLabel" type="range"></fieldset>
+<div class="actions"><button id="reset">ล้างตัวกรอง</button><button id="fit">ซูมไปพื้นที่ที่เลือก</button></div>
+<p><a class="chart-jump" href="#summary">ดูกราฟสรุป</a></p>
+</aside>
+<section class="map" aria-label="แผนที่จุดรับผู้โดยสาร">
+<canvas id="map" tabindex="0" aria-label="แผนที่ ลากเพื่อเลื่อน เลื่อนล้อเมาส์หรือกดปุ่มบวกลบเพื่อซูม ใช้ปุ่มลูกศรเพื่อเลื่อน"></canvas>
+<div class="overlay stats" role="status" id="stats">กำลังโหลดข้อมูล…</div>
+<div class="overlay zoom"><button id="plus" aria-label="ซูมเข้า">+</button><button id="minus" aria-label="ซูมออก">−</button><button id="home" aria-label="กลับมุมมอง NYC" title="กลับมุมมอง NYC">NYC</button><button id="region" aria-label="ดูทั้งภูมิภาค" title="ดูทั้งภูมิภาค">ทั้งหมด</button></div>
+<div class="overlay key"><strong id="keyTitle"></strong><div class="ramp" id="ramp"></div><small id="keyHelp"></small></div>
+<div class="tip" id="tip" hidden></div>
+</section>
+</main>
+<section class="report" id="summary" aria-labelledby="summaryTitle">
+<div class="report-head"><div><h2 id="summaryTitle">กราฟสรุป Pickup</h2><p id="chartStatus" role="status">กำลังโหลดข้อมูล…</p></div>
+<label>ข้อมูลในกราฟ<select id="chartScope"><option value="filtered">ทั้งหมดตามตัวกรอง</option><option value="viewport">เฉพาะกรอบแผนที่</option></select></label></div>
+<div class="chart-grid" id="charts"></div>
+</section>
+<script id="pickup-data" type="application/octet-stream">__PICKUPS__</script>
+<script id="worker-code" type="text/plain">
+let rows, groups, cachedKey, ranges, total, filteredStats, dimensions;
+const cosine = Math.cos(41 * Math.PI / 180);
+function counts() {
+  return Object.fromEntries(Object.entries(dimensions).map(([name, length]) => [name, Array(length).fill(0)]));
+}
+function addCounts(result, group, count) {
+  for (const key of Object.keys(dimensions)) result[key][group[key]]+=count;
+}
+function hexRound(q, r) {
+  let x = Math.round(q), y = Math.round(-q-r), z = Math.round(r);
+  const dx = Math.abs(x-q), dy = Math.abs(y+q+r), dz = Math.abs(z-r);
+  if (dx > dy && dx > dz) x = -y-z;
+  else if (dz > dy) z = -x-y;
+  return [x,z];
+}
+self.onmessage = async ({data: m}) => {
+  try {
+    if (m.kind === 'load') {
+      dimensions={month:6,day:7,hour:24,area:m.areas,base:m.bases};
+      const binary = atob(m.payload);
+      const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+      const stream = new ReadableStream({
+        start(controller) {
+          for (let offset=0; offset<bytes.length; offset+=65536) {
+            controller.enqueue(bytes.subarray(offset,offset+65536));
+          }
+          controller.close();
+        }
+      }).pipeThrough(new DecompressionStream('gzip'));
+      rows = new Uint16Array(await new Response(stream).arrayBuffer());
+      groups = [];
+      for (let i=0; i<rows.length;) {
+        const start=i, code=rows[i];
+        while (i<rows.length && rows[i]===code) i+=3;
+        let n=code;
+        const base=n%m.bases; n=Math.floor(n/m.bases);
+        const area=n%m.areas; n=Math.floor(n/m.areas);
+        const hour=n%24; n=Math.floor(n/24);
+        const day=n%7, month=Math.floor(n/7);
+        groups.push({start,end:i,base,area,hour,day,month});
+      }
+      self.postMessage({ready:true});
+      return;
+    }
+    const {f, v, mode, size, id}=m;
+    const key=JSON.stringify(f);
+    if (key!==cachedKey) {
+      ranges=groups.filter(g => f.base[g.base] && f.area[g.area] && f.day[g.day] &&
+        f.month[g.month] && g.hour>=f.start && g.hour<=f.end);
+      total=0;
+      filteredStats=counts();
+      for(const group of ranges){
+        const count=(group.end-group.start)/3;
+        total+=count;addCounts(filteredStats,group,count);
+      }
+      cachedKey=key;
+    }
+    const bins=new Map(), points=[], limit=45000, root=Math.sqrt(3);
+    const viewportStats=counts();
+    let visible=0, random=369, peak=0;
+    const left=(v.cx-v.w/2/v.s)/cosine, right=(v.cx+v.w/2/v.s)/cosine;
+    const bottom=v.cy-v.h/2/v.s, top=v.cy+v.h/2/v.s;
+    const margin=mode==='heat'?size/v.s:0;
+    for (const g of ranges) {
+      const before=visible;
+      for (let i=g.start; i<g.end; i+=3) {
+        const x=rows[i+1], y=rows[i+2];
+        if (x<left-margin/cosine || x>right+margin/cosine || y<bottom-margin || y>top+margin) continue;
+        const px=(x*cosine-v.cx)*v.s+v.w/2, py=(v.cy-y)*v.s+v.h/2;
+        const inView=x>=left && x<=right && y>=bottom && y<=top;
+        if (inView) visible++;
+        if (mode==='point') {
+          let index=visible-1;
+          if (visible>limit) {
+            random=(Math.imul(random,1664525)+1013904223)>>>0;
+            index=Math.floor(random/4294967296*visible);
+          }
+          if (index<limit) {points[index*2]=px; points[index*2+1]=py;}
+        } else {
+          let a,b,cx,cy;
+          if (mode==='hex') {
+            const wx=x*cosine*v.s, wy=-y*v.s;
+            [a,b]=hexRound((root/3*wx-wy/3)/size, (2/3*wy)/size);
+            cx=root*size*(a+b/2)-v.cx*v.s+v.w/2;
+            cy=1.5*size*b+v.cy*v.s+v.h/2;
+          } else {
+            a=Math.floor(px/7); b=Math.floor(py/7); cx=a*7+3.5; cy=b*7+3.5;
+          }
+          const binKey=a+':'+b;
+          const bin=bins.get(binKey);
+          if (bin) {bin[2]++; peak=Math.max(peak,bin[2]);}
+          else {bins.set(binKey,[cx,cy,1]); peak=Math.max(peak,1);}
+        }
+      }
+      if(visible>before)addCounts(viewportStats,g,visible-before);
+    }
+    const values=Float32Array.from(mode==='point'?points:[...bins.values()].flat());
+    self.postMessage({id,visible,total,peak,values,filteredStats,viewportStats},[values.buffer]);
+  } catch (error) { self.postMessage({error:error.message}); }
+};
+</script>
+<script>
+'use strict';
+const meta=__METADATA__;
+const $=id=>document.getElementById(id);
+const canvas=$('map'), ctx=canvas.getContext('2d');
+const heat=document.createElement('canvas'), hctx=heat.getContext('2d',{willReadFrequently:true});
+const brush=document.createElement('canvas');
+brush.width=brush.height=96;
+const bctx=brush.getContext('2d');
+const gradient=bctx.createRadialGradient(48,48,0,48,48,48);
+gradient.addColorStop(0,'#fff'); gradient.addColorStop(1,'#fff0');
+bctx.fillStyle=gradient; bctx.fillRect(0,0,96,96);
+const colors=[[73,156,175],[100,219,178],[249,205,108],[247,146,72],[255,241,169]];
+const palette=Array.from({length:256},(_,i)=>{
+  const t=i/255*(colors.length-1), a=Math.floor(t), b=Math.min(a+1,colors.length-1);
+  return colors[a].map((value,j)=>Math.round(value+(colors[b][j]-value)*(t-a)));
+});
+const f=new Intl.NumberFormat('en-US');
+const cosine=Math.cos(41*Math.PI/180);
+const world=([lon,lat])=>[(lon+76)*10000*cosine,(lat-39)*10000];
+const layers=meta.layers.map(layer=>({...layer,
+  polygons:layer.polygons.map(poly=>poly.map(ring=>ring.map(world)))
+}));
+const boroughLabels={Manhattan:[-73.97,40.78],Brooklyn:[-73.95,40.64],Queens:[-73.83,40.725],Bronx:[-73.87,40.87],'Staten Island':[-74.15,40.58]};
+const nyc=[-74.27,40.47,-73.68,40.93], region=[-75.08,39.5,-71.87,42.25];
+const config={
+  heat:{label:'รัศมี Heatmap',min:10,max:70,value:33,title:'ความหนาแน่นโดยประมาณ',help:'สีฟ้าแสดงความหนาแน่นต่ำ สีเหลืองแสดงความหนาแน่นสูงในพื้นที่ที่กำลังดู'},
+  hex:{label:'รัศมีช่องหกเหลี่ยม',min:7,max:55,value:22,title:'ยอด Pickup ต่อช่อง',help:'คลิกช่องเพื่อดูจำนวน pickup ที่อยู่ในกรอบแผนที่'},
+  point:{label:'ขนาดจุด',min:1,max:9,value:3,title:'ตำแหน่ง Pickup',help:'แสดงได้สูงสุด 45,000 จุดต่อมุมมอง ซูมเข้าเพื่อดูจุดละเอียดขึ้น'}
+};
+let v={w:0,h:0,cx:0,cy:0,s:1}, dpr=1, mode='heat', result, ready=false, inFlight=false;
+let revision=0, queued=false, renderFrame=0, dragStart, dragged=false;
+const contacts=new Map();
+$('dataset').textContent=f.format(meta.count);
+const months=['เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.'];
+const days=['จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์','อาทิตย์'];
+const filterSets=[['month','เดือน',months],['day','วันในสัปดาห์',days],
+                  ['area','พื้นที่',meta.areas],['base','Dispatch base',meta.bases]];
+const inputs={}, filterChoice={}, summaries={};
+const areaLabels=[...meta.areas.slice(0,5),'นอก NYC','NYC ไม่ระบุ borough'];
+for (const [key,title,labels] of filterSets) {
+  const details=document.createElement('details'), summary=document.createElement('summary');
+  const options=document.createElement('div');
+  options.className='options';
+  filterChoice[key]=new Set();
+  const display=key==='area'?areaLabels:labels;
+  inputs[key]=['ทั้งหมด',...display].map((text,index)=>{
+    const button=document.createElement('button');
+    button.textContent=text;
+    if(index===0)button.className='all';
+    button.onclick=()=>{
+      const choice=filterChoice[key], value=index-1;
+      if(index===0)choice.clear();
+      else if(choice.has(value))choice.delete(value);
+      else choice.add(value);
+      if(choice.size===labels.length)choice.clear();
+      updateFilterSummaries();invalidate();
+    };
+    options.append(button);
+    return button;
+  });
+  summaries[key]=summary;
+  details.append(summary,options);$('filters').append(details);
+}
+function updateFilterSummaries(){
+  for(const [key,title,labels] of filterSets){
+    const choice=filterChoice[key], display=key==='area'?areaLabels:labels;
+    const caption=choice.size===0?'ทั้งหมด':choice.size===1?display[[...choice][0]]:
+      choice.size+' ที่เลือก';
+    summaries[key].textContent=title+' · '+caption;
+    inputs[key].forEach((button,index)=>button.setAttribute('aria-pressed',
+      index===0?choice.size===0:choice.has(index-1)));
+  }
+}
+const hourLabels=Array.from({length:24},(_,hour)=>String(hour).padStart(2,'0'));
+for(const id of ['start','end']){
+  const suffix=id==='start'?':00':':59';
+  for(const [hour,label] of hourLabels.entries())$(id).add(new Option(label+suffix,hour));
+  $(id).addEventListener('change',()=>{
+    if (+$('start').value>+$('end').value) $(id==='start'?'end':'start').value=$(id).value;
+    updateHours();invalidate();
+  });
+}
+const hourPresets=[['ทั้งวัน',0,23],['เช้า',6,11],['บ่าย',12,16],['เย็น',17,20],['กลางคืน',21,23],['หลังเที่ยงคืน',0,5]];
+const presetButtons=hourPresets.map(([name,start,end])=>{
+  const button=document.createElement('button');
+  button.textContent=name;
+  button.onclick=()=>setHours(start,end);
+  $('presets').append(button);
+  return button;
+});
+function setHours(start,end){
+  $('start').value=start;$('end').value=end;updateHours();invalidate();
+}
+function updateHours(){
+  hourPresets.forEach(([,start,end],i)=>presetButtons[i].setAttribute('aria-pressed',
+    start===+$('start').value&&end===+$('end').value));
+}
+function areaSelected(index){
+  const choice=filterChoice.area;
+  return !choice.size||choice.has(index);
+}
+const chartSpecs=[
+  ['hour','ตามชั่วโมง',hourLabels,false],['day','ตามวันในสัปดาห์',days,false],
+  ['month','ตามเดือน',months,false],['area','ตามพื้นที่',areaLabels,true],
+  ['base','ตาม Dispatch base',meta.bases,true]
+];
+const chartElements=chartSpecs.map(([key,title,,horizontal])=>{
+  const section=document.createElement('section'), heading=document.createElement('h3');
+  const note=document.createElement('small'), list=document.createElement('ul');
+  section.className='chart '+key;
+  heading.textContent=title;
+  list.className=horizontal?'rank':'bars';
+  section.append(heading,note,list);$('charts').append(section);
+  return {note,list};
+});
+function renderCharts(){
+  if(!result)return;
+  const viewport=$('chartScope').value==='viewport';
+  const count=viewport?result.visible:result.total;
+  const stats=viewport?result.viewportStats:result.filteredStats;
+  $('chartStatus').textContent=f.format(count)+' รายการ · '+(viewport?
+    'จุดที่อยู่ในกรอบแผนที่':'ทุกรายการที่ตรงกับตัวกรอง');
+  chartSpecs.forEach(([key,,labels,horizontal],i)=>{
+    const {note,list}=chartElements[i], values=stats[key], max=Math.max(...values);
+    const maxIndex=values.indexOf(max);
+    note.textContent=max?('สูงสุด '+labels[maxIndex]+' · '+f.format(max)+' รายการ'):
+      'ไม่มีรายการในช่วงที่เลือก';
+    const indices=labels.map((_,index)=>index);
+    if(horizontal)indices.sort((a,b)=>values[b]-values[a]);
+    list.replaceChildren(...indices.map(index=>{
+      const row=document.createElement('li'), label=document.createElement('span');
+      const track=document.createElement('span'), bar=document.createElement('i');
+      const value=values[index], ratio=max?value/max:0;
+      row.title=labels[index]+(key==='hour'?':00':'')+' · '+f.format(value)+' รายการ';
+      row.setAttribute('aria-label',row.title);
+      label.textContent=key==='hour'&&index%3!==0?'':labels[index];
+      track.className=horizontal?'rank-track':'bar-slot';
+      bar.className=horizontal?'':'bar-fill';
+      bar.style[horizontal?'width':'height']=100*ratio+'%';
+      track.append(bar);
+      if(horizontal){
+        const number=document.createElement('strong');
+        number.textContent=f.format(value);
+        row.append(label,track,number);
+      }else row.append(track,label);
+      return row;
+    }));
+  });
+}
+$('chartScope').onchange=renderCharts;
+function selectMode(next){
+  mode=next;
+  for(const btn of document.querySelectorAll('[data-mode]')) btn.setAttribute('aria-pressed',btn.dataset.mode===mode);
+  const current=config[mode];
+  $('sizeLabel').textContent=current.label;
+  $('keyTitle').textContent=current.title;
+  $('keyHelp').textContent=current.help;
+  $('ramp').hidden=mode==='point';
+  Object.assign($('size'),{min:current.min,max:current.max,value:current.value});
+  updateSize(); invalidate();
+}
+function updateSize(){
+  config[mode].value=+$('size').value;
+  $('sizeValue').value=`${$('size').value} px`;
+}
+$('size').addEventListener('input',()=>{updateSize();invalidate();});
+for(const btn of document.querySelectorAll('[data-mode]')) btn.addEventListener('click',()=>selectMode(btn.dataset.mode));
+$('reset').onclick=()=>{
+  Object.values(filterChoice).forEach(choice=>choice.clear());
+  updateFilterSummaries();setHours(0,23);
+};
+const script=$('worker-code').textContent;
+const url=URL.createObjectURL(new Blob([script],{type:'text/javascript'}));
+const worker=new Worker(url);
+URL.revokeObjectURL(url);
+worker.onmessage=({data})=>{
+  if(data.error){$('stats').textContent='โหลดข้อมูลไม่สำเร็จ · '+data.error;return;}
+  if(data.ready){ready=true; dispatch();return;}
+  inFlight=false;
+  if(data.id===revision){
+    result=data;
+    renderCharts();
+    $('stats').innerHTML=`ตามตัวกรอง <strong>${f.format(data.total)}</strong> · ในแผนที่ <strong>${f.format(data.visible)}</strong>`;
+    if(mode==='point'&&data.visible>45000) $('stats').append(' · แสดงตัวอย่าง 45,000 จุด');
+    if(!data.visible) $('stats').append(data.total?' · ลองเลื่อนหรือซูมออก':' · ไม่มีรายการตรงกับตัวกรอง');
+    paintSoon();
+  }
+  if(queued) dispatch();
+};
+worker.onerror=event=>{$('stats').textContent='เปิดตัวประมวลผลแผนที่ไม่สำเร็จ · '+event.message;};
+const source=$('pickup-data');
+worker.postMessage({kind:'load',payload:source.textContent,bases:meta.bases.length,areas:meta.areas.length});
+source.remove();
+function dispatch(){
+  if(!ready||inFlight||!v.w||!v.h)return;
+  inFlight=true; queued=false;
+  const filters=Object.fromEntries(filterSets.map(([name,,labels])=>{
+    const choice=filterChoice[name];
+    return [name,labels.map((_,index)=>!choice.size||choice.has(index))];
+  }));
+  filters.start=+$('start').value; filters.end=+$('end').value;
+  worker.postMessage({id:revision,f:filters,v,mode,size:config[mode].value});
+}
+function invalidate(){
+  revision++; queued=true;$('tip').hidden=true;
+  if(ready) $('stats').textContent='กำลังอัปเดต…';
+  paintSoon();
+}
+function paintSoon(){
+  if(!renderFrame)renderFrame=requestAnimationFrame(()=>{
+    renderFrame=0;draw();if(queued)dispatch();
+  });
+}
+function pixel(x,y){return [(x-v.cx)*v.s+v.w/2,(v.cy-y)*v.s+v.h/2];}
+function fit(bounds){
+  const [left,bottom]=world(bounds.slice(0,2)), [right,top]=world(bounds.slice(2));
+  const padding=.78;
+  v.cx=(left+right)/2; v.cy=(bottom+top)/2;
+  v.s=Math.min(v.w*padding/(right-left),v.h*padding/(top-bottom));
+  invalidate();
+}
+function fitSelected(){
+  const areaNames=meta.areas.filter((_,i)=>areaSelected(i));
+  if(areaNames.includes('Outside NYC')){fit(region);return;}
+  const shapes=layers.filter(layer=>layer.kind==='borough'&&areaNames.includes(layer.name));
+  if(!shapes.length||shapes.length===5){fit(nyc);return;}
+  const bounds=[Infinity,Infinity,-Infinity,-Infinity];
+  for(const shape of shapes)for(const polygon of shape.polygons)for(const [x,y] of polygon[0]){
+    bounds[0]=Math.min(bounds[0],x);bounds[1]=Math.min(bounds[1],y);
+    bounds[2]=Math.max(bounds[2],x);bounds[3]=Math.max(bounds[3],y);
+  }
+  fit(bounds.map((n,i)=>i%2?n/10000+39:n/cosine/10000-76));
+}
+$('fit').onclick=fitSelected;
+function resize(){
+  const rect=canvas.getBoundingClientRect(), first=!v.w;
+  v.w=Math.round(rect.width);v.h=Math.round(rect.height);dpr=Math.min(devicePixelRatio||1,2);
+  canvas.width=v.w*dpr;canvas.height=v.h*dpr;heat.width=v.w;heat.height=v.h;
+  if(first)fit(nyc);else invalidate();
+}
+new ResizeObserver(resize).observe(canvas);
+function drawPolygons(kind){
+  for(const layer of layers.filter(item=>item.kind===kind)){
+    ctx.beginPath();
+    for(const poly of layer.polygons)for(const ring of poly){
+      for(let i=0;i<ring.length;i++){
+        const xy=pixel(...ring[i]);
+        if(i===0)ctx.moveTo(...xy);else ctx.lineTo(...xy);
+      }
+      ctx.closePath();
+    }
+    ctx.fillStyle=kind==='state'?'#192a36':'#243c49';
+    ctx.strokeStyle=kind==='state'?'#36515f':'#597480';
+    ctx.lineWidth=kind==='state'?1:1.2;
+    ctx.fill('evenodd');ctx.stroke();
+  }
+}
+function draw(){
+  if(!v.w||!v.h)return;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.fillStyle='#0d1b27';ctx.fillRect(0,0,v.w,v.h);
+  drawPolygons('state');drawPolygons('borough');
+  if(result?.id===revision){
+    const a=result.values, max=Math.log1p(result.peak), size=config[mode].value;
+    if(mode==='heat'&&result.peak){
+      hctx.clearRect(0,0,v.w,v.h);
+      for(let i=0;i<a.length;i+=3){
+        hctx.globalAlpha=.10+.64*Math.log1p(a[i+2])/max;
+        hctx.drawImage(brush,a[i]-size,a[i+1]-size,size*2,size*2);
+      }
+      hctx.globalAlpha=1;
+      const img=hctx.getImageData(0,0,v.w,v.h);
+      for(let i=0;i<img.data.length;i+=4){
+        const alpha=img.data[i+3];
+        if(alpha<12){img.data[i+3]=0;continue;}
+        const color=palette[alpha];
+        img.data.set(color,i);img.data[i+3]=Math.min(228,alpha*1.45);
+      }
+      hctx.putImageData(img,0,0);ctx.drawImage(heat,0,0);
+    }else if(mode==='hex'){
+      for(let i=0;i<a.length;i+=3){
+        const rgb=palette[Math.round(255*Math.log1p(a[i+2])/max)];
+        ctx.fillStyle=`rgba(${rgb.join(',')},.82)`;
+        ctx.strokeStyle='#101e29';ctx.lineWidth=.65;
+        ctx.beginPath();
+        for(let n=0;n<6;n++){
+          const angle=(30+n*60)*Math.PI/180;
+          const x=a[i]+size*Math.cos(angle),y=a[i+1]+size*Math.sin(angle);
+          if(n===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+        }
+        ctx.closePath();ctx.fill();ctx.stroke();
+      }
+    }else if(mode==='point'){
+      ctx.fillStyle='rgba(114,237,200,.36)';
+      for(let i=0;i<a.length;i+=2)ctx.fillRect(a[i]-size/2,a[i+1]-size/2,size,size);
+    }
+  }
+  if(v.s>.075){
+    ctx.font='600 12px system-ui';ctx.textAlign='center';ctx.lineWidth=3;
+    ctx.strokeStyle='#12242e';ctx.fillStyle='#e4f1f4';
+    for(const [name,coordinate] of Object.entries(boroughLabels)){
+      const p=pixel(...world(coordinate));ctx.strokeText(name,...p);ctx.fillText(name,...p);
+    }
+  }
+}
+function zoom(factor,x=v.w/2,y=v.h/2){
+  const next=Math.max(.008,Math.min(22,v.s*factor));
+  v.cx+=(x-v.w/2)*(1/v.s-1/next);
+  v.cy-=(y-v.h/2)*(1/v.s-1/next);
+  v.s=next;invalidate();
+}
+$('plus').onclick=()=>zoom(1.5);$('minus').onclick=()=>zoom(1/1.5);
+$('home').onclick=()=>fit(nyc);$('region').onclick=()=>fit(region);
+function cursor(e){const r=canvas.getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top];}
+canvas.addEventListener('wheel',e=>{e.preventDefault();zoom(Math.exp(Math.max(-1,Math.min(1,-e.deltaY*.002))),...cursor(e));},{passive:false});
+canvas.addEventListener('pointerdown',e=>{
+  if(e.button!==0)return;
+  canvas.setPointerCapture(e.pointerId);
+  const p=cursor(e);contacts.set(e.pointerId,p);
+  if(contacts.size===1){dragStart=p;dragged=false;}else dragged=true;
+});
+canvas.addEventListener('pointermove',e=>{
+  if(!contacts.has(e.pointerId))return;
+  const previous=contacts.get(e.pointerId), current=cursor(e);
+  const other=[...contacts].find(([id])=>id!==e.pointerId)?.[1];
+  contacts.set(e.pointerId,current);
+  if(other){
+    const from=Math.hypot(previous[0]-other[0],previous[1]-other[1]);
+    const to=Math.hypot(current[0]-other[0],current[1]-other[1]);
+    if(from>3&&to>3)zoom(to/from,(previous[0]+other[0])/2,(previous[1]+other[1])/2);
+  }
+  if(!dragged && Math.hypot(current[0]-dragStart[0],current[1]-dragStart[1])<4)return;
+  const step=other?2:1;
+  const origin=dragged?previous:dragStart;
+  v.cx-=(current[0]-origin[0])/v.s/step;v.cy+=(current[1]-origin[1])/v.s/step;
+  dragged=true;invalidate();
+});
+canvas.addEventListener('pointercancel',e=>contacts.delete(e.pointerId));
+canvas.addEventListener('pointerup',e=>{
+  if(!contacts.delete(e.pointerId)||dragged||mode!=='hex'||result?.id!==revision)return;
+  const [x,y]=cursor(e), values=result.values;
+  let count=0, closest=Infinity;
+  for(let i=0;i<values.length;i+=3){
+    const dx=Math.abs(x-values[i]),dy=Math.abs(y-values[i+1]), size=config.hex.value;
+    if(dx>Math.sqrt(3)/2*size||dy>size||dx/Math.sqrt(3)+dy>size)continue;
+    const distance=dx*dx+dy*dy;
+    if(distance<closest){closest=distance;count=values[i+2];}
+  }
+  const tip=$('tip');
+  tip.hidden=!count;
+  if(count){tip.textContent=`${f.format(count)} pickups`;tip.style.left=`${Math.max(6,Math.min(x+12,v.w-130))}px`;tip.style.top=`${Math.max(6,y-36)}px`;}
+});
+canvas.addEventListener('keydown',e=>{
+  const offsets={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,1],ArrowDown:[0,-1]};
+  if(e.key in offsets){const [x,y]=offsets[e.key];v.cx+=x*60/v.s;v.cy+=y*60/v.s;invalidate();}
+  else if(e.key==='+'||e.key==='=')zoom(1.5);
+  else if(e.key==='-')zoom(1/1.5);
+  else return;
+  e.preventDefault();
+});
+updateFilterSummaries();setHours(0,23);selectMode('heat');
+</script>
+</body>
+</html>
